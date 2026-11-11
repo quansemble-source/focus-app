@@ -2,7 +2,7 @@
   "name": "Focus Workspace",
   "short_name": "Focus",
   "description": "Personal focus app — tasks, goals, habits, notes",
-  "start_url": "/index.html",
+  "start_url": "/focus-app/index.html",
   "display": "standalone",
   "background_color": "#f6f5f1",
   "theme_color": "#3b5bdb",
