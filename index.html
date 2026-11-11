@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Focus">
+<meta name="theme-color" content="#3b5bdb">
+<link rel="manifest" href="manifest.json">
+<title>Focus</title>
+<style>
+:root{
+  --bg:#f6f5f1;--card:#fff;--tx:#1f2328;--mu:#6b7280;--bd:#e4e2da;
+  --ac:#3b5bdb;--g:#2f9e44;--a:#f08c00;--r:#e03131;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171a;--card:#202226;--tx:#e8e8e6;--mu:#9a9da4;--bd:#31343a;--ac:#748ffc;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg);color:var(--tx);
+  font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;
+  display:flex;flex-direction:column;
+  padding-top:var(--safe-top);
+  padding-bottom:var(--safe-bot);
+  overflow:hidden;
+}
+
+/* ── Top bar ── */
+.topbar{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;border-bottom:1px solid var(--bd);
+  background:var(--card);flex:none;
+}
+.topbar h1{margin:0;font-size:17px;flex:1}
+.topbar button{background:none;border:none;color:var(--mu);font-size:20px;cursor:pointer;padding:4px 6px}
+
+/* ── Scroll area ── */
+#scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+main{max-width:600px;margin:0 auto;padding:14px 12px 24px}
+
+/* ── Bottom nav ── */
+.botnav{
+  display:flex;border-top:1px solid var(--bd);background:var(--card);flex:none;
+}
+.botnav button{
+  flex:1;border:none;background:none;color:var(--mu);
+  padding:10px 4px 6px;font-size:10px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+.botnav button .ic{font-size:22px;line-height:1}
+.botnav button.on{color:var(--ac)}
+.botnav button.on .ic{transform:scale(1.1)}
+
+/* ── Cards / common ── */
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+h2{margin:0 0 14px;font-size:19px}
+h3{margin:14px 0 6px;font-size:14px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+.row{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.mu{color:var(--mu);font-size:13px}
+input,select,textarea{
+  font:inherit;color:var(--tx);background:var(--bg);
+  border:1px solid var(--bd);border-radius:10px;padding:8px 11px;
+}
+input[type=text],input[type=date],input[type=time]{width:100%}
+textarea{width:100%;min-height:200px;resize:vertical}
+.btn{
+  display:inline-flex;align-items:center;gap:5px;
+  border:1px solid var(--bd);background:var(--bg);color:var(--tx);
+  padding:7px 13px;border-radius:10px;cursor:pointer;font:inherit;
+}
+.btn.prim{background:var(--ac);color:#fff;border-color:var(--ac)}
+.btn-fab{
+  position:fixed;right:16px;bottom:calc(70px + var(--safe-bot));
+  width:52px;height:52px;border-radius:50%;border:none;
+  background:var(--ac);color:#fff;font-size:26px;cursor:pointer;
+  box-shadow:0 4px 16px rgba(59,91,219,.35);display:flex;align-items:center;justify-content:center;
+}
+
+/* ── Priority badges ── */
+.pri{font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px;color:#fff;white-space:nowrap}
+.p1{background:var(--r)}.p2{background:var(--a)}.p3{background:#868e96}.p4{background:#adb5bd}
+
+/* ── Progress bar ── */
+.bar{height:7px;background:var(--bd);border-radius:9px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;background:var(--ac);border-radius:9px}
+
+/* ── Status dot ── */
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.g{background:var(--g)}.a{background:var(--a)}.r{background:var(--r)}
+
+/* ── Checkbox ── */
+.chk{
+  width:24px;height:24px;border-radius:8px;border:2px solid var(--bd);
+  background:none;cursor:pointer;color:#fff;font-size:14px;padding:0;flex:none;
+  display:flex;align-items:center;justify-content:center;
+}
+.chk.on{background:var(--g);border-color:var(--g)}
+.done .t{text-decoration:line-through;color:var(--mu)}
+
+/* ── Habit strip ── */
+.hstrip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.hb{
+  flex:none;border:1px solid var(--bd);background:var(--card);color:var(--tx);
+  border-radius:14px;padding:10px 13px;cursor:pointer;text-align:center;min-width:76px;
+}
+.hb.on{background:var(--g);color:#fff;border-color:var(--g)}
+.hb .ic{font-size:22px}
+.hb .nm{font-size:12px;margin-top:2px}
+.hb .st{font-size:11px;opacity:.8}
+
+/* ── Heat map ── */
+.heat{display:grid;grid-template-rows:repeat(7,10px);grid-auto-flow:column;grid-auto-columns:10px;gap:2px;overflow-x:auto}
+.heat i{border-radius:2px;background:var(--bd)}.heat i.on{background:var(--g)}
+
+/* ── Notes list ── */
+.nlist .nitem{padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:4px}
+.nlist .nitem.on{background:var(--card);border:1px solid var(--bd)}
+.nlist .nitem .nt{font-weight:600;font-size:14px}
+.nlist .nitem .np{font-size:12px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── Timeline ── */
+.tl{position:relative;overflow-x:auto;margin-bottom:8px}
+.tlr{position:relative;height:28px;min-width:400px;margin:3px 0}
+.tlb{position:absolute;top:3px;height:22px;border-radius:6px;font-size:11px;color:#fff;padding:2px 6px;overflow:hidden;white-space:nowrap;cursor:pointer}
+.today-line{position:absolute;top:0;bottom:0;width:2px;background:var(--r);opacity:.6}
+
+/* ── Overdue badge ── */
+.od{color:var(--r)}
+
+/* ── Section divider ── */
+.sdiv{font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px;padding-left:2px}
+
+/* ── Empty state ── */
+.empty{text-align:center;color:var(--mu);padding:28px 0;font-size:14px}
+
+/* ── Sheet (modal) ── */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:none}
+.sheet-bg.on{display:block}
+.sheet{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--card);border-radius:20px 20px 0 0;
+  padding:16px 16px calc(16px + var(--safe-bot));
+  max-height:90vh;overflow-y:auto;z-index:51;
+  transform:translateY(100%);transition:transform .25s ease;
+}
+.sheet.on{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--bd);margin:0 auto 14px}
+.sheet h3{margin:0 0 12px;font-size:16px;text-transform:none;letter-spacing:0;color:var(--tx)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;color:var(--mu);margin-bottom:4px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ── Install banner ── */
+#install-banner{
+  display:none;background:var(--ac);color:#fff;
+  padding:10px 14px;text-align:center;font-size:13px;cursor:pointer;
+  flex:none;
+}
+</style>
+</head>
+<body>
+
+<div id="install-banner">📲 Tap to install Focus on your home screen</div>
+
+<div class="topbar">
+  <h1 id="page-title">🎯 Today</h1>
+  <button id="theme-btn" title="Toggle theme">🌙</button>
+</div>
+
+<div id="scroll"><main id="m"></main></div>
+
+<nav class="botnav" id="botnav">
+  <button data-tab="today"><span class="ic">☀️</span>Today</button>
+  <button data-tab="targets"><span class="ic">🎯</span>Goals</button>
+  <button data-tab="habits"><span class="ic">🔥</span>Habits</button>
+  <button data-tab="notes"><span class="ic">📓</span>Notes</button>
+  <button data-tab="review"><span class="ic">📋</span>Review</button>
+</nav>
+
+<!-- Sheet overlay -->
+<div class="sheet-bg" id="sheet-bg"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div id="sheet-body"></div>
+</div>
+
+<script>
+// ── Utils ──────────────────────────────────────────────────────────
+const D = n => { const d = new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10) };
+const TODAY = D(0);
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid = () => Math.random().toString(36).slice(2,9);
+const PN = {1:'P1 Critical',2:'P2 Important',3:'P3 Nice to have',4:'Parked'};
+
+// ── IndexedDB Storage ──────────────────────────────────────────────
+let db;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open('focus',2);
+    r.onupgradeneeded = e => {
+      const d = e.target.result;
+      ['targets','tasks','habits','notes','mind','prefs'].forEach(s=>{
+        if(!d.objectStoreNames.contains(s)) d.createObjectStore(s,{keyPath:'id'});
+      });
+    };
+    r.onsuccess = e => { db = e.target.result; res(db) };
+    r.onerror = () => rej(r.error);
+  });
+}
+function idb(store,mode='readonly'){return db.transaction(store,mode).objectStore(store)}
+function getAll(store){return new Promise(res=>{ const r=idb(store).getAll(); r.onsuccess=()=>res(r.result) })}
+function put(store,obj){return new Promise(res=>{ const r=idb(store,'readwrite').put(obj); r.onsuccess=()=>res() })}
+function del(store,id){return new Promise(res=>{ const r=idb(store,'readwrite').delete(id); r.onsuccess=()=>res() })}
+
+// ── State ──────────────────────────────────────────────────────────
+let S = { tab:'today', sel:null, note:null };
+let targets=[], tasks=[], habits=[], notes=[];
+
+async function loadAll(){
+  [targets,tasks,habits,notes] = await Promise.all([
+    getAll('targets'), getAll('tasks'), getAll('habits'), getAll('notes')
+  ]);
+  const p = await getAll('prefs');
+  p.forEach(x=>{ S[x.id]=x.v });
+  if(!targets.length) await seed();
+  [targets,tasks,habits,notes] = await Promise.all([
+    getAll('targets'), getAll('tasks'), getAll('habits'), getAll('notes')
+  ]);
+  if(!S.sel && targets[0]) S.sel = targets[0].id;
+  if(!S.note && notes[0]) S.note = notes[0].id;
+}
+
+async function seed(){
+  const log = mod => { const o={}; for(let i=1;i<=84;i++) if((i*7+mod)%5!==0&&(i*3+mod)%11!==0) o[D(-i)]=1; return o };
+  const ts = [
+    {id:'t1',name:'Launch website',pri:1,start:D(-40),end:D(50),why:'Get the first paying customers.',crit:'Site live with contact form.',risks:['Copy not ready'],phases:[{n:'Design',s:D(-40),e:D(-10)},{n:'Build',s:D(-9),e:D(25)},{n:'Launch',s:D(26),e:D(50)}]},
+    {id:'t2',name:'Learn Spanish (B1)',pri:2,start:D(-20),end:D(70),why:'Trip next spring.',crit:'Hold a 10-min conversation.',risks:['Time on weekdays'],phases:[{n:'Basics',s:D(-20),e:D(15)},{n:'Practice',s:D(16),e:D(70)}]},
+    {id:'t3',name:'Run a 10K',pri:3,start:D(5),end:D(95),why:'Fitness.',crit:'Finish under 60 min.',risks:[],phases:[{n:'Base',s:D(5),e:D(45)},{n:'Build',s:D(46),e:D(95)}]}
+  ];
+  const tk = [
+    {id:'a1',t:'Draft sitemap',tg:'t1',ph:0,due:D(-12),time:'',done:true},
+    {id:'a2',t:'Choose colour palette',tg:'t1',ph:0,due:D(-11),time:'',done:true},
+    {id:'a3',t:'Build homepage',tg:'t1',ph:1,due:D(0),time:'10:00',done:false},
+    {id:'a4',t:'Contact form',tg:'t1',ph:1,due:D(3),time:'',done:false},
+    {id:'a5',t:'Write product copy',tg:'t1',ph:1,due:D(-1),time:'',done:false},
+    {id:'a6',t:'Set up hosting',tg:'t1',ph:2,due:D(30),time:'',done:false},
+    {id:'b1',t:'Finish unit 3',tg:'t2',ph:0,due:D(1),time:'18:00',done:false},
+    {id:'b2',t:'Learn 50 core verbs',tg:'t2',ph:0,due:D(8),time:'',done:false},
+    {id:'c1',t:'Buy running shoes',tg:'t3',ph:0,due:D(7),time:'',done:false},
+    {id:'x1',t:'Pay electricity bill',tg:'',ph:0,due:D(2),time:'',done:false}
+  ];
+  const hb = [
+    {id:'h1',n:'Write 30 min',i:'✍️',tm:'09:00',tg:'t1',log:log(1)},
+    {id:'h2',n:'Spanish practice',i:'🗣️',tm:'18:30',tg:'t2',log:log(2)},
+    {id:'h3',n:'Meditate',i:'🧘',tm:'07:00',tg:'',log:log(3)},
+    {id:'h4',n:'Stretch',i:'🤸',tg:'t3',tm:'',log:log(4)}
+  ];
+  const nt = [
+    {id:'n1',title:'Website kickoff',body:'Meeting notes\n- Confirm pricing page layout\n- Ask designer for logo files\n- Decide on payment provider\n\nIdeas: add a blog after launch.'},
+    {id:'n2',title:'Daily journal',body:'Felt focused today.\nEnergy: 4/5'}
+  ];
+  await Promise.all([...ts.map(x=>put('targets',x)), ...tk.map(x=>put('tasks',x)),
+    ...hb.map(x=>put('habits',x)), ...nt.map(x=>put('notes',x))]);
+}
+
+// ── Computed ───────────────────────────────────────────────────────
+const T = id => targets.find(t=>t.id===id);
+const days = (a,b) => (new Date(b)-new Date(a))/864e5;
+function streak(h){ let d=h.log[TODAY]?0:1,n=0; while(h.log[D(-d)]){n++;d++} return n }
+function rate7(h){ let n=0; for(let i=0;i<7;i++) if(h.log[D(-i)]) n++; return n/7 }
+function prog(t){
+  const ts=tasks.filter(x=>x.tg===t.id), hs=habits.filter(h=>h.tg===t.id);
+  const tp=ts.length?ts.filter(x=>x.done).length/ts.length:0;
+  if(!hs.length) return tp;
+  return .7*tp+.3*(hs.reduce((a,h)=>a+rate7(h),0)/hs.length);
+}
+function health(t){
+  const el=Math.min(1,Math.max(0,days(t.start,TODAY)/days(t.start,t.end))), p=prog(t);
+  if(el<=0) return'g'; return p>=el-.05?'g':p>=el-.2?'a':'r';
+}
+const HL={g:'On track',a:'At risk',r:'Behind'};
+const sortTasks = a => [...a].sort((x,y)=>{
+  const gx=T(x.tg), gy=T(y.tg);
+  const px=gx?gx.pri:3.5, py=gy?gy.pri:3.5;
+  return px-py||x.due.localeCompare(y.due)||(x.time||'99').localeCompare(y.time||'99');
+});
+
+// ── Sheet ──────────────────────────────────────────────────────────
+function openSheet(html, onClose){
+  document.getElementById('sheet-body').innerHTML = html;
+  document.getElementById('sheet').classList.add('on');
+  document.getElementById('sheet-bg').classList.add('on');
+  _sheetClose = onClose||null;
+}
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('on');
+  document.getElementById('sheet-bg').classList.remove('on');
+  if(_sheetClose){ _sheetClose(); _sheetClose=null; }
+}
+let _sheetClose = null;
+document.getElementById('sheet-bg').onclick = closeSheet;
+
+// ── Task sheet ─────────────────────────────────────────────────────
+function taskSheet(task){
+  const tgOpts = targets.map(x=>`<option value="${x.id}"${task.tg===x.id?' selected':''}>${esc(x.name)}</option>`).join('')
+    + `<option value=""${!task.tg?' selected':''}>No goal</option>`;
+  openSheet(`
+    <h3>${task.id?'Edit task':'New task'}</h3>
+    <div class="field"><label>Task name</label><input type="text" id="ts-name" value="${esc(task.t||'')}" placeholder="What needs to be done?"></div>
+    <div class="field-row">
+      <div class="field"><label>Due date</label><input type="date" id="ts-due" value="${task.due||TODAY}"></div>
+      <div class="field"><label>Time <span class="mu">(optional)</span></label><input type="time" id="ts-time" value="${task.time||''}"></div>
+    </div>
+    <div class="field"><label>Linked goal</label><select id="ts-tg">${tgOpts}</select></div>
+    <div class="row" style="gap:8px;margin-top:4px">
+      ${task.id?`<button class="btn" id="ts-del" style="color:var(--r)">Delete</button><span class="sp"></span>`:'<span class="sp"></span>'}
+      <button class="btn" id="ts-cancel">Cancel</button>
+      <button class="btn prim" id="ts-save">Save</button>
+    </div>
+  `, render);
+  setTimeout(()=>document.getElementById('ts-name').focus(),100);
+  document.getElementById('ts-cancel').onclick = closeSheet;
+  document.getElementById('ts-save').onclick = async ()=>{
+    const name = document.getElementById('ts-name').value.trim();
+    if(!name) return;
+    const obj = {
+      id: task.id||uid(), t:name,
+      due: document.getElementById('ts-due').value||TODAY,
+      time: document.getElementById('ts-time').value||'',
+      tg: document.getElementById('ts-tg').value,
+      ph: task.ph||0, done: task.done||false,
+      src: task.src||''
+    };
+    await put('tasks', obj);
+    tasks = await getAll('tasks');
+    closeSheet(); render();
+  };
+  if(task.id){
+    document.getElementById('ts-del').onclick = async ()=>{
+      await del('tasks', task.id);
+      tasks = await getAll('tasks');
+      closeSheet(); render();
+    };
+  }
+}
+
+// ── Habit sheet ────────────────────────────────────────────────────
+function habitSheet(habit){
+  const tgOpts = targets.map(x=>`<option value="${x.id}"${habit.tg===x.id?' selected':''}>${esc(x.name)}</option>`).join('')
+    + `<option value=""${!habit.tg?' selected':''}>No goal</option>`;
+  openSheet(`
+    <h3>${habit.id?'Edit habit':'New habit'}</h3>
+    <div class="field-row">
+      <div class="field"><label>Icon</label><input type="text" id="hb-icon" value="${esc(habit.i||'⭐')}" style="font-size:20px"></div>
+      <div class="field"><label>Name</label><input type="text" id="hb-name" value="${esc(habit.n||'')}" placeholder="Habit name"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Reminder time</label><input type="time" id="hb-tm" value="${habit.tm||''}"></div>
+      <div class="field"><label>Linked goal</label><select id="hb-tg">${tgOpts}</select></div>
+    </div>
+    <div class="row" style="gap:8px;margin-top:4px">
+      ${habit.id?`<button class="btn" id="hb-del" style="color:var(--r)">Delete</button><span class="sp"></span>`:'<span class="sp"></span>'}
+      <button class="btn" id="hb-cancel">Cancel</button>
+      <button class="btn prim" id="hb-save">Save</button>
+    </div>
+  `, render);
+  setTimeout(()=>document.getElementById('hb-name').focus(),100);
+  document.getElementById('hb-cancel').onclick = closeSheet;
+  document.getElementById('hb-save').onclick = async ()=>{
+    const name = document.getElementById('hb-name').value.trim();
+    if(!name) return;
+    const obj = {
+      id: habit.id||uid(), n:name,
+      i: document.getElementById('hb-icon').value||'⭐',
+      tm: document.getElementById('hb-tm').value||'',
+      tg: document.getElementById('hb-tg').value,
+      log: habit.log||{}
+    };
+    await put('habits', obj);
+    habits = await getAll('habits');
+    closeSheet(); render();
+  };
+  if(habit.id){
+    document.getElementById('hb-del').onclick = async ()=>{
+      await del('habits', habit.id);
+      habits = await getAll('habits');
+      closeSheet(); render();
+    };
+  }
+}
+
+// ── Note sheet ─────────────────────────────────────────────────────
+function noteSheet(note){
+  openSheet(`
+    <h3>${note.id?'Edit note':'New note'}</h3>
+    <div class="field"><label>Title</label><input type="text" id="nt-title" value="${esc(note.title||'')}"></div>
+    <div class="field"><label>Body</label><textarea id="nt-body">${esc(note.body||'')}</textarea></div>
+    <div class="row" style="gap:8px;margin-top:4px">
+      ${note.id?`<button class="btn" id="nt-del" style="color:var(--r)">Delete</button><span class="sp"></span>`:'<span class="sp"></span>'}
+      <button class="btn" id="nt-cancel">Cancel</button>
+      <button class="btn prim" id="nt-save">Save</button>
+    </div>
+  `, render);
+  setTimeout(()=>document.getElementById('nt-title').focus(),100);
+  document.getElementById('nt-cancel').onclick = closeSheet;
+  document.getElementById('nt-save').onclick = async ()=>{
+    const title = document.getElementById('nt-title').value.trim()||'Untitled';
+    const obj = { id:note.id||uid(), title, body:document.getElementById('nt-body').value };
+    await put('notes', obj);
+    notes = await getAll('notes');
+    S.note = obj.id;
+    closeSheet(); render();
+  };
+  if(note.id){
+    document.getElementById('nt-del').onclick = async ()=>{
+      await del('notes', note.id);
+      notes = await getAll('notes');
+      S.note = notes[0]?.id||null;
+      closeSheet(); render();
+    };
+  }
+}
+
+// ── Target sheet ───────────────────────────────────────────────────
+function targetSheet(tgt){
+  openSheet(`
+    <h3>${tgt.id?'Edit goal':'New goal'}</h3>
+    <div class="field"><label>Goal name</label><input type="text" id="tg-name" value="${esc(tgt.name||'')}"></div>
+    <div class="field"><label>Why does this matter?</label><input type="text" id="tg-why" value="${esc(tgt.why||'')}"></div>
+    <div class="field"><label>Success criteria</label><input type="text" id="tg-crit" value="${esc(tgt.crit||'')}"></div>
+    <div class="field-row">
+      <div class="field"><label>Start date</label><input type="date" id="tg-s" value="${tgt.start||TODAY}"></div>
+      <div class="field"><label>End date</label><input type="date" id="tg-e" value="${tgt.end||D(60)}"></div>
+    </div>
+    <div class="field"><label>Priority</label><select id="tg-pri">${[1,2,3,4].map(p=>`<option value="${p}"${tgt.pri==p?' selected':''}>${PN[p]}</option>`).join('')}</select></div>
+    <div class="row" style="gap:8px;margin-top:4px">
+      ${tgt.id&&targets.length>1?`<button class="btn" id="tg-del" style="color:var(--r)">Delete</button><span class="sp"></span>`:'<span class="sp"></span>'}
+      <button class="btn" id="tg-cancel">Cancel</button>
+      <button class="btn prim" id="tg-save">Save</button>
+    </div>
+  `, render);
+  setTimeout(()=>document.getElementById('tg-name').focus(),100);
+  document.getElementById('tg-cancel').onclick = closeSheet;
+  document.getElementById('tg-save').onclick = async ()=>{
+    const name = document.getElementById('tg-name').value.trim();
+    if(!name) return;
+    const obj = {
+      id: tgt.id||uid(), name,
+      why: document.getElementById('tg-why').value,
+      crit: document.getElementById('tg-crit').value,
+      start: document.getElementById('tg-s').value||TODAY,
+      end: document.getElementById('tg-e').value||D(60),
+      pri: +document.getElementById('tg-pri').value,
+      risks: tgt.risks||[],
+      phases: tgt.phases||[{n:'Plan',s:TODAY,e:D(20)},{n:'Do',s:D(21),e:D(60)}]
+    };
+    await put('targets', obj);
+    targets = await getAll('targets');
+    S.sel = obj.id;
+    closeSheet(); render();
+  };
+  if(tgt.id && targets.length>1){
+    document.getElementById('tg-del').onclick = async ()=>{
+      await del('targets', tgt.id);
+      tasks.filter(x=>x.tg===tgt.id).forEach(x=>{ x.tg=''; put('tasks',x) });
+      habits.filter(h=>h.tg===tgt.id).forEach(h=>{ h.tg=''; put('habits',h) });
+      targets = await getAll('targets');
+      tasks = await getAll('tasks');
+      habits = await getAll('habits');
+      S.sel = targets[0]?.id||null;
+      closeSheet(); render();
+    };
+  }
+}
+
+// ── Task row ───────────────────────────────────────────────────────
+function taskRow(tk, showGoal){
+  const g = T(tk.tg);
+  const od = !tk.done && tk.due < TODAY;
+  const timeStr = tk.time ? ` · ⏰ ${tk.time}` : '';
+  const dueStr = tk.due===TODAY ? 'Today' : tk.due;
+  return `<div class="card row ${tk.done?'done':''}" style="padding:10px 12px;gap:10px" data-id="${tk.id}">
+    <button class="chk ${tk.done?'on':''}" data-a="tick" data-id="${tk.id}">${tk.done?'✓':''}</button>
+    <div class="sp" style="min-width:0">
+      <div class="t" style="font-size:14px">${esc(tk.t)}</div>
+      <div class="mu">${g&&showGoal?esc(g.name)+' · ':''}<span${od?' class="od"':''}>${dueStr}${timeStr}</span></div>
+    </div>
+    ${g&&showGoal?`<span class="pri p${g.pri}">${PN[g.pri].split(' ')[0]}</span>`:''}
+    <button data-a="edit-task" data-id="${tk.id}" style="background:none;border:none;color:var(--mu);font-size:18px;cursor:pointer;padding:4px">✎</button>
+  </div>`;
+}
+
+// ── Views ──────────────────────────────────────────────────────────
+const views = {
+
+today(){
+  const nowT = new Date().toTimeString().slice(0,5);
+  const open = sortTasks(tasks.filter(t=>!t.done && T(t.tg)?.pri!==4));
+  const over = open.filter(t=>t.due<TODAY).length;
+  const todayTasks = open.filter(t=>t.due<=TODAY);
+  const upcomingTasks = open.filter(t=>t.due>TODAY);
+
+  return `
+    <div class="sdiv">Habits</div>
+    <div class="hstrip">${[...habits].sort((a,b)=>(a.tm||'99').localeCompare(b.tm||'99')).map(h=>`
+      <button class="hb ${h.log[TODAY]?'on':''}" data-a="hab" data-id="${h.id}"
+        ${h.tm&&h.tm<nowT&&!h.log[TODAY]?' style="border-color:var(--r)"':''}>
+        <div class="ic">${h.i}</div>
+        <div class="nm">${esc(h.n)}</div>
+        <div class="st">🔥 ${streak(h)}</div>
+      </button>`).join('')}
+      <button class="hb" data-a="new-habit" style="color:var(--mu)">
+        <div class="ic">＋</div><div class="nm">New</div>
+      </button>
+    </div>
+
+    <div class="sdiv">Today${over?` <span style="color:var(--r)">(${over} overdue)</span>`:''}</div>
+    ${todayTasks.map(t=>taskRow(t,true)).join('')}
+    ${!todayTasks.length?'<div class="empty">All clear 🎉</div>':''}
+
+    ${upcomingTasks.length?`<div class="sdiv">Upcoming</div>${upcomingTasks.map(t=>taskRow(t,true)).join('')}`:''}
+
+    <div style="height:70px"></div>
+    <button class="btn-fab" data-a="new-task">＋</button>
+  `;
+},
+
+targets(){
+  const sorted = [...targets].sort((a,b)=>a.pri-b.pri);
+  const act = sorted.filter(t=>t.pri!==4);
+  const sel = T(S.sel)||sorted[0];
+  if(!sel) return `<h2>Goals</h2><div class="empty">No goals yet</div><button class="btn prim" data-a="new-target">+ Add goal</button>`;
+
+  let mn=Math.min(...act.map(t=>+new Date(t.start))),mx=Math.max(...act.map(t=>+new Date(t.end)));
+  if(!isFinite(mn)){mn=+new Date(TODAY);mx=mn+30*864e5}
+  const span=mx-mn||1, pos=d=>((+new Date(d)-mn)/span*100);
+
+  const selTasks = tasks.filter(x=>x.tg===sel.id);
+
+  return `
+    <h2>Goals</h2>
+    <div class="card" style="margin-bottom:10px">
+      <div class="mu" style="margin-bottom:6px;font-size:12px">TIMELINE</div>
+      <div class="tl">${act.map(t=>`
+        <div class="mu" style="font-size:11px;margin-top:5px">${esc(t.name)}</div>
+        <div class="tlr">
+          <div class="today-line" style="left:${pos(TODAY)}%"></div>
+          ${t.phases.map((p,i)=>`<div class="tlb" style="left:${pos(p.s)}%;width:${Math.max(2,pos(p.e)-pos(p.s))}%;background:var(--ac);opacity:${.5+i*.2}">${esc(p.n)}</div>`).join('')}
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="sdiv">Your goals</div>
+    ${sorted.map(t=>`
+      <div class="card" data-a="pick-target" data-id="${t.id}" style="cursor:pointer;${t.id===sel.id?'border-color:var(--ac)':''}${t.pri===4?';opacity:.55':''}">
+        <div class="row"><b class="sp" style="font-size:15px">${esc(t.name)}</b><span class="pri p${t.pri}">${PN[t.pri].split(' ')[0]}</span></div>
+        <div class="bar"><i style="width:${Math.round(prog(t)*100)}%"></i></div>
+        <div class="row mu"><span>${Math.round(prog(t)*100)}%</span><span class="sp"></span><span class="dot ${health(t)}"></span>${HL[health(t)]}</div>
+      </div>`).join('')}
+    <button class="btn" data-a="new-target" style="margin-bottom:16px">+ New goal</button>
+
+    ${sel?`
+    <div class="sdiv">— ${esc(sel.name)}</div>
+    <div class="card">
+      <div class="row"><b class="sp">${esc(sel.name)}</b><button class="btn" data-a="edit-target" data-id="${sel.id}">Edit</button></div>
+      <div class="mu" style="margin-top:4px">Why: ${esc(sel.why||'—')}</div>
+      <div class="mu">Done when: ${esc(sel.crit||'—')}</div>
+      <div class="bar"><i style="width:${Math.round(prog(sel)*100)}%"></i></div>
+    </div>
+    <div class="sdiv">Tasks</div>
+    ${sortTasks(selTasks).map(t=>taskRow(t,false)).join('')}
+    ${!selTasks.length?'<div class="empty" style="padding:14px 0">No tasks yet</div>':''}
+    <button class="btn" data-a="new-task-for-target" data-id="${sel.id}" style="margin-bottom:16px">+ Add task</button>
+    `:''}
+    <div style="height:70px"></div>
+  `;
+},
+
+habits(){
+  return `
+    <h2>Habits</h2>
+    ${habits.map(h=>{
+      const cells=[];
+      const dow=new Date().getDay();
+      for(let i=83+dow;i>=0;i--) cells.push(`<i class="${h.log[D(-i)]?'on':''}" title="${D(-i)}"></i>`);
+      const tg=T(h.tg);
+      return `<div class="card">
+        <div class="row">
+          <span style="font-size:24px">${h.i}</span>
+          <div class="sp">
+            <div style="font-weight:600">${esc(h.n)}</div>
+            <div class="mu">${tg?'→ '+esc(tg.name)+' · ':''}${Math.round(rate7(h)*100)}% this week</div>
+          </div>
+          <div style="text-align:right">
+            <div>🔥 ${streak(h)} day${streak(h)===1?'':'s'}</div>
+            ${h.tm?`<div class="mu" style="font-size:12px">⏰ ${h.tm}</div>`:''}
+          </div>
+          <button class="chk ${h.log[TODAY]?'on':''}" data-a="hab" data-id="${h.id}">${h.log[TODAY]?'✓':''}</button>
+        </div>
+        <div class="heat" style="margin-top:10px">${cells.join('')}</div>
+        <button class="btn" data-a="edit-habit" data-id="${h.id}" style="margin-top:10px;font-size:13px">Edit</button>
+      </div>`;
+    }).join('')}
+    ${!habits.length?'<div class="empty">No habits yet</div>':''}
+    <button class="btn" data-a="new-habit" style="margin-bottom:80px">+ New habit</button>
+  `;
+},
+
+notes(){
+  const n = notes.find(x=>x.id===S.note)||notes[0];
+  if(!notes.length) return `<h2>Notebook</h2><div class="empty">No notes yet</div><button class="btn prim" data-a="new-note">+ New note</button>`;
+  return `
+    <h2>Notebook</h2>
+    <div class="nlist">${notes.map(x=>`
+      <div class="nitem ${x.id===n?.id?'on':''}" data-a="pick-note" data-id="${x.id}">
+        <div class="nt">${esc(x.title)}</div>
+        <div class="np">${esc(x.body||'').slice(0,60)}</div>
+      </div>`).join('')}
+    </div>
+    ${n?`<div class="card" style="margin-top:4px">
+      <div class="row">
+        <b class="sp">${esc(n.title)}</b>
+        <button class="btn" data-a="edit-note" data-id="${n.id}">Edit</button>
+      </div>
+      <div style="margin-top:8px;white-space:pre-wrap;font-size:14px">${esc(n.body)}</div>
+    </div>`:''}
+    <button class="btn" data-a="new-note" style="margin-bottom:80px">+ New note</button>
+  `;
+},
+
+review(){
+  const od = tasks.filter(t=>!t.done&&t.due<TODAY);
+  const risk = targets.filter(t=>t.pri!==4&&health(t)!=='g');
+  const slip = habits.filter(h=>rate7(h)<.5);
+  return `
+    <h2>Weekly review</h2>
+    <div class="card">
+      <b>Overdue tasks (${od.length})</b>
+      ${od.map(t=>taskRow(t,true)).join('')}
+      ${!od.length?'<div class="empty" style="padding:10px 0">None 🎉</div>':''}
+      ${od.length?`<button class="btn" data-a="od2today" style="margin-top:8px">Move all to today</button>`:''}
+    </div>
+    <div class="card">
+      <b>Goals needing attention (${risk.length})</b>
+      ${risk.map(t=>`<div class="row" style="margin-top:8px">
+        <span class="dot ${health(t)}"></span>
+        <span class="sp">${esc(t.name)}</span>
+        <span class="mu">${Math.round(prog(t)*100)}%</span>
+      </div>`).join('')}
+      ${!risk.length?'<div class="empty" style="padding:10px 0">All on track 🎉</div>':''}
+    </div>
+    <div class="card">
+      <b>Slipping habits (${slip.length})</b>
+      ${slip.map(h=>`<div style="margin-top:8px">${h.i} ${esc(h.n)} <span class="mu">— ${Math.round(rate7(h)*100)}% this week</span></div>`).join('')}
+      ${!slip.length?'<div class="empty" style="padding:10px 0">Habits are steady 🎉</div>':''}
+    </div>
+    <div class="card mu">
+      <b style="color:var(--tx)">Stats</b>
+      <div style="margin-top:6px">Tasks done: ${tasks.filter(t=>t.done).length} / ${tasks.length}</div>
+      <div>Active goals: ${targets.filter(t=>t.pri!==4).length}</div>
+      <div>Habits tracked: ${habits.length}</div>
+      <div>Notes: ${notes.length}</div>
+    </div>
+  `;
+}
+
+};
+
+// ── Render ─────────────────────────────────────────────────────────
+const TAB_TITLES = {today:'☀️ Today',targets:'🎯 Goals',habits:'🔥 Habits',notes:'📓 Notebook',review:'📋 Review'};
+function render(){
+  document.getElementById('page-title').textContent = TAB_TITLES[S.tab]||'Focus';
+  document.querySelectorAll('.botnav button').forEach(b=>{
+    b.classList.toggle('on', b.dataset.tab===S.tab);
+  });
+  document.getElementById('m').innerHTML = views[S.tab]();
+  document.getElementById('scroll').scrollTop=0;
+}
+
+// ── Events ─────────────────────────────────────────────────────────
+document.getElementById('botnav').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-tab]');
+  if(btn){ S.tab=btn.dataset.tab; render(); }
+});
+
+document.getElementById('m').addEventListener('click', async e=>{
+  const el = e.target.closest('[data-a]');
+  if(!el) return;
+  const a = el.dataset.a, id = el.dataset.id;
+
+  if(a==='tick'){
+    const t = tasks.find(x=>x.id===id);
+    if(!t) return;
+    t.done = !t.done;
+    await put('tasks',t);
+    tasks = await getAll('tasks');
+    render();
+  }
+  else if(a==='hab'){
+    const h = habits.find(x=>x.id===id);
+    if(!h) return;
+    h.log[TODAY]?delete h.log[TODAY]:(h.log[TODAY]=1);
+    await put('habits',h);
+    habits = await getAll('habits');
+    render();
+  }
+  else if(a==='pick-target'){ S.sel=id; render(); }
+  else if(a==='pick-note'){ S.note=id; render(); }
+  else if(a==='new-task') taskSheet({});
+  else if(a==='new-task-for-target') taskSheet({tg:id,ph:0});
+  else if(a==='edit-task'){ const t=tasks.find(x=>x.id===id); if(t) taskSheet(t); }
+  else if(a==='new-target') targetSheet({});
+  else if(a==='edit-target'){ const t=T(id); if(t) targetSheet(t); }
+  else if(a==='new-habit') habitSheet({});
+  else if(a==='edit-habit'){ const h=habits.find(x=>x.id===id); if(h) habitSheet(h); }
+  else if(a==='new-note') noteSheet({});
+  else if(a==='edit-note'){ const n=notes.find(x=>x.id===id); if(n) noteSheet(n); }
+  else if(a==='od2today'){
+    await Promise.all(tasks.filter(t=>!t.done&&t.due<TODAY).map(t=>{ t.due=TODAY; return put('tasks',t) }));
+    tasks = await getAll('tasks');
+    render();
+  }
+});
+
+// ── Theme toggle ───────────────────────────────────────────────────
+let darkMode = window.matchMedia('(prefers-color-scheme:dark)').matches;
+document.getElementById('theme-btn').onclick = ()=>{
+  darkMode=!darkMode;
+  document.documentElement.dataset.theme = darkMode?'dark':'light';
+  document.getElementById('theme-btn').textContent = darkMode?'☀️':'🌙';
+};
+
+// ── PWA install ────────────────────────────────────────────────────
+let deferredPrompt;
+const banner = document.getElementById('install-banner');
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault(); deferredPrompt=e;
+  banner.style.display='block';
+});
+banner.onclick = ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{ deferredPrompt=null; banner.style.display='none' });
+};
+window.addEventListener('appinstalled', ()=>{ banner.style.display='none' });
+
+// ── Service Worker ─────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ── Boot ───────────────────────────────────────────────────────────
+openDB().then(loadAll).then(render);
+</script>
+</body>
+</html>
