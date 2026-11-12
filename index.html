@@ -489,13 +489,14 @@ function taskRow(tk, showGoal){
   const od = !tk.done && tk.due < TODAY;
   const timeStr = tk.time ? ` · ⏰ ${tk.time}` : '';
   const dueStr = tk.due===TODAY ? 'Today' : tk.due;
-  return `<div class="card row ${tk.done?'done':''}" style="padding:10px 12px;gap:10px" data-id="${tk.id}">
+  return `<div class="card row ${tk.done?'done':''}" style="padding:10px 12px;gap:8px" data-id="${tk.id}">
     <button class="chk ${tk.done?'on':''}" data-a="tick" data-id="${tk.id}">${tk.done?'✓':''}</button>
     <div class="sp" style="min-width:0">
       <div class="t" style="font-size:14px">${esc(tk.t)}</div>
       <div class="mu">${g&&showGoal?esc(g.name)+' · ':''}<span${od?' class="od"':''}>${dueStr}${timeStr}</span></div>
     </div>
     ${g&&showGoal?`<span class="pri p${g.pri}">${PN[g.pri].split(' ')[0]}</span>`:''}
+    <button data-a="repeat-task" data-id="${tk.id}" title="Repeat tomorrow" style="background:none;border:none;color:var(--mu);font-size:17px;cursor:pointer;padding:4px" ${tk.done?'':''}">🔁</button>
     <button data-a="edit-task" data-id="${tk.id}" style="background:none;border:none;color:var(--mu);font-size:18px;cursor:pointer;padding:4px">✎</button>
   </div>`;
 }
@@ -725,6 +726,20 @@ document.getElementById('m').addEventListener('click', async e=>{
   else if(a==='edit-habit'){ const h=habits.find(x=>x.id===id); if(h) habitSheet(h); }
   else if(a==='new-note') noteSheet({});
   else if(a==='edit-note'){ const n=notes.find(x=>x.id===id); if(n) noteSheet(n); }
+  else if(a==='repeat-task'){
+    const t = tasks.find(x=>x.id===id);
+    if(!t) return;
+    // Mark original done
+    t.done = true;
+    await put('tasks', t);
+    // Create copy due next day
+    const nextDue = new Date(t.due);
+    nextDue.setDate(nextDue.getDate()+1);
+    const copy = { ...t, id:uid(), done:false, due:nextDue.toISOString().slice(0,10) };
+    await put('tasks', copy);
+    tasks = await getAll('tasks');
+    render();
+  }
   else if(a==='od2today'){
     await Promise.all(tasks.filter(t=>!t.done&&t.due<TODAY).map(t=>{ t.due=TODAY; return put('tasks',t) }));
     tasks = await getAll('tasks');
